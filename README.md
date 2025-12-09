@@ -259,5 +259,3 @@ npm run lint             # Fix linting issues
 4. Run tests: `npm test`
 5. Commit with clear messages
 6. Open a pull request
-
-
