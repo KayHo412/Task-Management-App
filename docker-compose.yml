@@ -1,0 +1,60 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - '80:80'
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    volumes:
+      - ./backend:/app
+    ports:
+      - '3000:3000'
+    restart: unless-stopped
+
+    env_file:
+      - ./backend/.env
+
+    environment:
+      DATABASE_URL: postgres://postgres:astrox88dpro2024@db:5432/mydb
+      NODE_ENV: production
+
+      # Observability
+      OTEL_SDK_DISABLED: 'false'
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://lgtm:4318
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_SERVICE_NAME: backend_service
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    networks:
+      - default
+      - observability
+
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: astrox88dpro2024
+      POSTGRES_DB: mydb
+    ports:
+      - '5432:5432'
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+
+networks:
+  observability:
+    external: true

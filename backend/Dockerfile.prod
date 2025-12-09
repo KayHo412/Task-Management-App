@@ -1,0 +1,31 @@
+# Use a lean base image for production
+FROM node:20-slim
+
+WORKDIR /usr/src/app
+
+# Prisma requires OpenSSL 3 for linux-arm64-openssl-3.0.x
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
+# Copy package files
+COPY package*.json ./
+
+# Install production deps (includes @prisma/client)
+RUN npm ci --only=production
+
+# Copy full backend source (including prisma/)
+COPY . .
+
+# Generate correct Prisma client for Linux ARM64
+RUN npx prisma generate
+
+# Build TypeScript → dist/
+RUN npm run build
+
+# Env
+ENV NODE_ENV=production
+ENV PORT=3000
+
+EXPOSE 3000
+
+# Start backend with OpenTelemetry tracing
+CMD ["node", "-r", "./dist/src/tracing.js", "dist/src/index.js"]
