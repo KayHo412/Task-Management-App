@@ -83,7 +83,7 @@ npm install
 npm run dev
 ```
 
-The frontend will start on `http://localhost:5174`
+The frontend will start on `http://localhost:5173`
 
 **Test credentials** (from seed):
 - Email: `test@example.com`
