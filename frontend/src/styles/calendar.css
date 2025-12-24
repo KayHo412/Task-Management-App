@@ -1,0 +1,343 @@
+.calendar-container {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--bg);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  height: 100%;
+}
+
+.calendar-header {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.calendar-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--text);
+  min-width: 150px;
+  text-align: center;
+}
+
+.calendar-header button {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-header button:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.calendar-grid {
+  grid-column: 1 / 2;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+  align-content: start;
+}
+
+.weekday-header {
+  font-weight: 600;
+  text-align: center;
+  padding: 0.75rem 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.25rem;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.calendar-day:hover:not(.other-month) {
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.2);
+}
+
+.calendar-day.other-month {
+  background: var(--bg-secondary);
+  opacity: 0.5;
+}
+
+.calendar-day.selected {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.calendar-day.selected .day-number {
+  color: white;
+}
+
+.calendar-day.has-overdue {
+  border-color: var(--danger);
+}
+
+.calendar-day.has-overdue:not(.selected) {
+  background: var(--danger-light);
+}
+
+.day-number {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.calendar-day.selected .day-number {
+  color: white;
+}
+
+.day-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.task-indicator {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.task-indicator.priority-low {
+  background: var(--info);
+}
+
+.task-indicator.priority-medium {
+  background: var(--warning);
+}
+
+.task-indicator.priority-high {
+  background: var(--danger);
+}
+
+.task-indicator.done {
+  opacity: 0.5;
+}
+
+.task-count {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  line-height: 1;
+}
+
+/* Calendar Details */
+.calendar-details {
+  grid-column: 2 / 3;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  overflow: hidden;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.details-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.details-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.details-header button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1.25rem;
+  transition: color 0.2s;
+}
+
+.details-header button:hover {
+  color: var(--text);
+}
+
+.details-body {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.details-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.details-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.details-body::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.details-body::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+.details-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+}
+
+.detail-task {
+  padding: 0.75rem;
+  background: var(--bg);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.detail-task:hover {
+  background: var(--bg-hover);
+}
+
+.detail-task input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.detail-task .task-title {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-task .task-title.line-through {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.detail-task .priority-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.priority-badge.priority-low {
+  background: var(--info-light);
+  color: var(--info);
+}
+
+.priority-badge.priority-medium {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
+.priority-badge.priority-high {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .calendar-container {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-details {
+    grid-column: 1 / 2;
+    order: 3;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-container {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .calendar-grid {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem;
+  }
+
+  .calendar-day {
+    padding: 0.25rem;
+    font-size: 0.75rem;
+  }
+
+  .day-number {
+    font-size: 0.75rem;
+  }
+
+  .task-indicator {
+    width: 3px;
+    height: 3px;
+  }
+
+  .task-count {
+    font-size: 0.55rem;
+  }
+
+  .weekday-header {
+    padding: 0.5rem 0;
+    font-size: 0.75rem;
+  }
+}

@@ -10,6 +10,9 @@ import {
   deleteTaskById,
   markTaskAsDone,
   markTaskAsUndone,
+  updateTaskOrder,
+  updateTask,
+  findTaskById,
 } from "../services/taskService.js";
 
 const router = express.Router();
@@ -17,6 +20,18 @@ const router = express.Router();
 const createTaskSchema = z.object({
   title: z.string().min(1),
   body: z.string().optional(),
+  priority: z.enum(['low', 'medium', 'high']).optional(),
+  dueDate: z.string().optional(),
+  teamId: z.string().optional(),
+});
+
+const updateTaskSchema = z.object({
+  title: z.string().optional(),
+  body: z.string().optional().nullable(),
+  priority: z.enum(['low', 'medium', 'high']).optional(),
+  dueDate: z.string().optional().nullable(),
+  done: z.boolean().optional(),
+  order: z.number().optional(),
 });
 
 // Get all tasks for the authenticated user
@@ -39,9 +54,38 @@ router.post("/", requireAuth, validateBody(createTaskSchema), async (req: AuthRe
     const ownerId = req.user?.id;
     if (!ownerId) return res.status(400).json({ error: "Invalid user" });
 
-    const { title, body } = req.body;
-    const task = await createTask(ownerId, title, body);
+    const { title, body, priority, dueDate, teamId } = req.body;
+    const task = await createTask(ownerId, title, body, priority, dueDate, teamId);
     res.status(201).json(task);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+// Update a task
+router.patch("/:id", requireAuth, validateBody(updateTaskSchema), async (req: AuthRequest, res) => {
+  try {
+    const ownerId = req.user?.id;
+    const taskId = req.params.id;
+    if (!ownerId) return res.status(400).json({ error: "Invalid user" });
+
+    const { title, body, priority, dueDate, done, order } = req.body;
+
+    if (order !== undefined) {
+      await updateTaskOrder(ownerId, taskId, order);
+    }
+
+    const task = await updateTask(ownerId, taskId, {
+      title,
+      body,
+      priority,
+      dueDate,
+      done,
+    });
+
+    if (!task) return res.status(404).json({ error: "Task not found" });
+    res.json(task);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Database error" });

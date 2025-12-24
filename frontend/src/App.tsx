@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import './App.css'
+import './styles/global.css'
 import AuthPage from './pages/AuthPage'
 import TaskBoard from './pages/TaskBoard'
 
@@ -33,16 +33,25 @@ function App() {
     setAuth(null)
   }
 
-  if (loading) return <div className="loading">Loading...</div>
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✨</div>
+          <div style={{ color: 'var(--text-light)', fontSize: '1rem' }}>Loading TaskFlow...</div>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="app">
+    <>
       {!auth ? (
         <AuthPage onLogin={handleLogin} />
       ) : (
         <TaskBoard token={auth.token} onLogout={handleLogout} />
       )}
-    </div>
+    </>
   )
 }
 
