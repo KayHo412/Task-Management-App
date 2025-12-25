@@ -1,4 +1,4 @@
-import { Trash2, Calendar, Flag } from 'lucide-react'
+import { Trash2, Calendar, Flag, Edit2 } from 'lucide-react'
 import { format, isPast, isToday, isTomorrow } from 'date-fns'
 
 interface Task {
@@ -15,9 +15,10 @@ interface TaskListProps {
   tasks: Task[]
   onToggle: (id: string) => void
   onDelete: (id: string) => void
+  onEdit?: (task: Task) => void
 }
 
-export default function TaskList({ tasks, onToggle, onDelete }: TaskListProps) {
+export default function TaskList({ tasks, onToggle, onDelete, onEdit }: TaskListProps) {
   if (tasks.length === 0) {
     return (
       <div className="task-list-empty">
@@ -26,6 +27,20 @@ export default function TaskList({ tasks, onToggle, onDelete }: TaskListProps) {
         <div className="empty-state-text">Great job! Add a new task to get started.</div>
       </div>
     )
+  }
+
+  const formatDescription = (text: string) => {
+    // Parse markdown-like formatting
+    let formatted = text
+    // Bold: **text**
+    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    // Italic: *text*
+    formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>')
+    // Bullet points: - text
+    formatted = formatted.replace(/^- (.*?)$/gm, '<li>$1</li>')
+    // Wrap lists
+    formatted = formatted.replace(/(<li>.*?<\/li>)/s, '<ul>$1</ul>')
+    return formatted
   }
 
   const getPriorityColor = (priority?: string) => {
@@ -66,7 +81,12 @@ export default function TaskList({ tasks, onToggle, onDelete }: TaskListProps) {
               <div className="task-title">{task.title}</div>
             </div>
 
-            {task.body && <div className="task-description">{task.body}</div>}
+            {task.body && (
+              <div
+                className="task-description"
+                dangerouslySetInnerHTML={{ __html: formatDescription(task.body) }}
+              />
+            )}
 
             <div className="task-meta">
               {task.priority && task.priority !== 'medium' && (
@@ -91,6 +111,15 @@ export default function TaskList({ tasks, onToggle, onDelete }: TaskListProps) {
               >
                 {task.done ? '↩️ Undo' : '✓ Done'}
               </button>
+              {onEdit && (
+                <button
+                  onClick={() => onEdit(task)}
+                  className="task-btn"
+                  title="Edit task"
+                >
+                  <Edit2 size={14} />
+                </button>
+              )}
               <button
                 onClick={() => onDelete(task.id)}
                 className="task-btn danger"

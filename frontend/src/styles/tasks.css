@@ -77,7 +77,6 @@
   gap: 0.75rem;
   flex: 1;
   overflow-y: auto;
-  min-height: 400px;
 }
 
 .task-list-empty {
@@ -100,7 +99,8 @@
   cursor: grab;
   transition: all 0.2s ease;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  z-index: 1;
 }
 
 .task-item:active {
@@ -114,10 +114,13 @@
 
 .draggable-task-wrapper {
   transition: all 0.2s;
+  position: relative;
 }
 
 .draggable-task-wrapper.dragging {
-  opacity: 0.5;
+  opacity: 0.7;
+  transform: rotate(2deg) scale(1.02);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .task-header {
@@ -193,6 +196,26 @@
   color: var(--text-light);
   font-size: 0.9rem;
   line-height: 1.4;
+}
+
+.task-description strong {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.task-description em {
+  font-style: italic;
+  color: var(--text);
+}
+
+.task-description ul {
+  margin: 0.5rem 0 0 1.5rem;
+  padding: 0;
+}
+
+.task-description li {
+  list-style-type: disc;
+  margin: 0.25rem 0;
 }
 
 .task-actions {

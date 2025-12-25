@@ -37,6 +37,7 @@ export default function TaskBoard({ token, onLogout }: TaskBoardProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showModal, setShowModal] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [showSettings, setShowSettings] = useState(false)
   const [showTeams, setShowTeams] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -116,6 +117,33 @@ export default function TaskBoard({ token, onLogout }: TaskBoardProps) {
       setShowModal(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add task')
+    }
+  }
+
+  const handleEditTask = async (title: string, body: string, priority: string = 'medium', dueDate?: string) => {
+    if (!editingTask) return
+
+    try {
+      const response = await fetch(`${API_URL}/api/tasks/${editingTask.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title,
+          body,
+          priority,
+          dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
+        }),
+      })
+      if (!response.ok) throw new Error('Failed to update task')
+      const updatedTask = await response.json()
+      setTasks(tasks.map(t => t.id === editingTask.id ? updatedTask : t))
+      setEditingTask(null)
+      setShowModal(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update task')
     }
   }
 
@@ -331,11 +359,19 @@ export default function TaskBoard({ token, onLogout }: TaskBoardProps) {
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
                                   className={`draggable-task-wrapper ${snapshot.isDragging ? 'dragging' : ''}`}
+                                  style={{
+                                    ...provided.draggableProps.style,
+                                    zIndex: snapshot.isDragging ? 1000 : 'auto',
+                                  }}
                                 >
                                   <TaskList
                                     tasks={[task]}
                                     onToggle={handleToggleTask}
                                     onDelete={handleDeleteTask}
+                                    onEdit={(t) => {
+                                      setEditingTask(t)
+                                      setShowModal(true)
+                                    }}
                                   />
                                 </div>
                               )}
@@ -377,11 +413,19 @@ export default function TaskBoard({ token, onLogout }: TaskBoardProps) {
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
                                   className={`draggable-task-wrapper ${snapshot.isDragging ? 'dragging' : ''}`}
+                                  style={{
+                                    ...provided.draggableProps.style,
+                                    zIndex: snapshot.isDragging ? 1000 : 'auto',
+                                  }}
                                 >
                                   <TaskList
                                     tasks={[task]}
                                     onToggle={handleToggleTask}
                                     onDelete={handleDeleteTask}
+                                    onEdit={(t) => {
+                                      setEditingTask(t)
+                                      setShowModal(true)
+                                    }}
                                   />
                                 </div>
                               )}
@@ -403,7 +447,12 @@ export default function TaskBoard({ token, onLogout }: TaskBoardProps) {
       {showModal && (
         <TaskModal
           onAddTask={handleAddTask}
-          onClose={() => setShowModal(false)}
+          onEditTask={editingTask ? handleEditTask : undefined}
+          editingTask={editingTask}
+          onClose={() => {
+            setShowModal(false)
+            setEditingTask(null)
+          }}
         />
       )}
 

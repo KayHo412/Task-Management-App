@@ -1,18 +1,36 @@
-import { useState } from 'react'
-import { X, AlertCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { X, AlertCircle, Bold, Italic } from 'lucide-react'
 
 interface TaskModalProps {
   onAddTask: (title: string, body: string, priority: string, dueDate?: string) => void
+  onEditTask?: (title: string, body: string, priority: string, dueDate?: string) => void
   onClose: () => void
+  editingTask?: {
+    id: string
+    title: string
+    body?: string
+    priority?: string
+    dueDate?: string
+  } | null
 }
 
-export default function TaskModal({ onAddTask, onClose }: TaskModalProps) {
+export default function TaskModal({ onAddTask, onEditTask, onClose, editingTask }: TaskModalProps) {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [priority, setPriority] = useState('medium')
   const [dueDate, setDueDate] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const isEditing = !!editingTask
+
+  useEffect(() => {
+    if (editingTask) {
+      setTitle(editingTask.title)
+      setBody(editingTask.body || '')
+      setPriority(editingTask.priority || 'medium')
+      setDueDate(editingTask.dueDate ? new Date(editingTask.dueDate).toISOString().split('T')[0] : '')
+    }
+  }, [editingTask])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,19 +42,40 @@ export default function TaskModal({ onAddTask, onClose }: TaskModalProps) {
 
     setLoading(true)
     try {
-      await onAddTask(title, body, priority, dueDate)
+      if (isEditing && onEditTask) {
+        await onEditTask(title, body, priority, dueDate)
+      } else {
+        await onAddTask(title, body, priority, dueDate)
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add task')
+      setError(err instanceof Error ? err.message : `Failed to ${isEditing ? 'update' : 'add'} task`)
     } finally {
       setLoading(false)
     }
+  }
+
+  const insertFormatting = (before: string, after: string = '') => {
+    const textarea = document.querySelector('.form-textarea') as HTMLTextAreaElement
+    if (!textarea) return
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selectedText = body.substring(start, end)
+    const newBody = body.substring(0, start) + before + selectedText + after + body.substring(end)
+    setBody(newBody)
+
+    setTimeout(() => {
+      textarea.selectionStart = start + before.length
+      textarea.selectionEnd = start + before.length + selectedText.length
+      textarea.focus()
+    }, 0)
   }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <h2 className="modal-header">Create New Task</h2>
+          <h2 className="modal-header">{isEditing ? 'Edit Task' : 'Create New Task'}</h2>
           <button
             onClick={onClose}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-light)', fontSize: '1.5rem' }}
@@ -67,10 +106,41 @@ export default function TaskModal({ onAddTask, onClose }: TaskModalProps) {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Description</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <label className="form-label">Description</label>
+              <div className="formatting-buttons" style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => insertFormatting('**', '**')}
+                  disabled={loading}
+                  title="Bold"
+                  style={{ padding: '0.25rem 0.5rem', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Bold size={14} color="currentColor" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertFormatting('*', '*')}
+                  disabled={loading}
+                  title="Italic"
+                  style={{ padding: '0.25rem 0.5rem', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Italic size={14} color="currentColor" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertFormatting('- ')}
+                  disabled={loading}
+                  title="Bullet point"
+                  style={{ padding: '0.25rem 0.5rem', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  •
+                </button>
+              </div>
+            </div>
             <textarea
               className="form-textarea"
-              placeholder="Add more details about this task..."
+              placeholder="Add more details about this task... Use **text** for bold, *text* for italic, or - for bullets"
               value={body}
               onChange={(e) => setBody(e.target.value)}
               disabled={loading}
@@ -118,7 +188,7 @@ export default function TaskModal({ onAddTask, onClose }: TaskModalProps) {
               className="primary"
               disabled={loading}
             >
-              {loading ? 'Creating...' : 'Create Task'}
+              {loading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update Task' : 'Create Task')}
             </button>
           </div>
         </form>
